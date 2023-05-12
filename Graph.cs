@@ -1,88 +1,111 @@
 ﻿public class Edge
 {
-    public readonly Node First;
-    public readonly Node Second;
+	public readonly Node From;
+	public readonly Node To;
+	public Edge(Node first, Node second)
+	{
+		From = first;
+		To = second;
+	}
+	public bool IsIncident(Node node) =>
+		From == node || To == node;
 
-    public Edge(Node first, Node second)
-    {
-        First = first;
-        Second = second;
-    }
-
-    public bool IsIncident(Node node)
-    {
-        return node == First || node == Second;
-    }
-
-    public Node OtherNode(Node node)
-    {
-        if (First == node) return Second;
-        else if (Second == node) return First;
-        else throw new ArgumentException();
-    }
+	public Node OtherNode(Node node)
+	{
+		if (!IsIncident(node)) throw new ArgumentException();
+		if (From == node) return To;
+		return From;
+	}
 }
 
 public class Node
 {
-    private readonly List<Edge> incidentEdges = new();
+	readonly List<Edge> edges = new List<Edge>();
+	public readonly int NodeNumber;
 
-    public readonly int Number;
-    public IEnumerable<Node> IncidentNodes => IncidentEdges.Select(z => z.OtherNode(this));
+	public Node(int number)
+	{
+		NodeNumber = number;
+	}
 
-    public IEnumerable<Edge> IncidentEdges => IncidentEdges.Select(e => e);
+	public IEnumerable<Node> IncidentNodes
+	{
+		get
+		{
+			return edges.Select(z => z.OtherNode(this));
+		}
+	}
+	public IEnumerable<Edge> IncidentEdges
+	{
+		get
+		{
+			foreach (var e in edges) yield return e;
+		}
+	}
+	public static Edge Connect(Node node1, Node node2, Graph graph)
+	{
+		if (!graph.Nodes.Contains(node1) || !graph.Nodes.Contains(node2)) throw new ArgumentException();
+		var edge = new Edge(node1, node2);
+		node1.edges.Add(edge);
+		node2.edges.Add(edge);
+		return edge;
+	}
+	public static void Disconnect(Edge edge)
+	{
+		edge.From.edges.Remove(edge);
+		edge.To.edges.Remove(edge);
+	}
 
-    public Node(int number)
-    {
-        Number = number;
-    }
-
-    public void Connect(Node anotherNode, Graph graph)
-    {
-        var edge = new Edge(this, anotherNode);
-        incidentEdges.Add(edge);
-        anotherNode.incidentEdges.Add(edge);
-    }
-
-    public void Disconnect(Edge edge)
-    {
-        edge.First.incidentEdges.Remove(edge);
-        edge.Second.incidentEdges.Remove(edge);
-    }
-
-    public override string ToString()
-    {
-        return Number.ToString();
-    }
+	public override string ToString()
+	{
+		return NodeNumber.ToString();
+	}
 }
 
 public class Graph
 {
-    private readonly Node[] nodes;
+	private Node[] nodes;
 
-    public Graph(int nodesCount)
-    {
-        nodes = Enumerable
-            .Range(0, nodesCount)
-            .Select(z => new Node(z))
-            .ToArray();
-    }
+	public Graph(int nodesCount)
+	{
+		nodes = Enumerable.Range(0, nodesCount).Select(z => new Node(z)).ToArray();
+	}
 
-    public Node this[int index] => nodes[index];
+	public int Length => nodes.Length;
 
-    public IEnumerable<Node> Nodes => nodes.Select(n => n);
+	public Node this[int index] => nodes[index];
 
-    public IEnumerable<Edge> Edges
-    {
-        get
-        {
-            return Nodes
-                .SelectMany(z => z.IncidentEdges)
-                .Distinct();
-        }
-    }
+	public IEnumerable<Node> Nodes
+	{
+		get
+		{
+			foreach (var node in nodes) yield return node;
+		}
+	}
 
-    public void Connect(int v1, int v2)
-    {
-        nodes[v1].Connect(nodes[v2], this);
-    }
+	public void Connect(int index1, int index2)
+	{
+		Node.Connect(nodes[index1], nodes[index2], this);
+	}
+
+	public void Delete(Edge edge)
+	{
+		Node.Disconnect(edge);
+	}
+
+	public IEnumerable<Edge> Edges
+	{
+		get
+		{
+			return nodes.SelectMany(z => z.IncidentEdges).Distinct();
+		}
+	}
+
+	public static Graph MakeGraph(params int[] incidentNodes)
+	{
+		var graph = new Graph(incidentNodes.Max() + 1);
+		for (var i = 0; i < incidentNodes.Length - 1; i += 2)
+			graph.Connect(incidentNodes[i], incidentNodes[i + 1]);
+		return graph;
+	}
 }

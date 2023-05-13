@@ -3,17 +3,14 @@
     public static void Main()
     {
         var graph = Graph.MakeGraph(
-            1, 2,
-            3, 4,
-            3, 5,
-            4, 5
+            0, 1,
+            1, 4,
+            0, 2,
+            2, 3,
+            3, 4
         );
 
-        foreach (var component in graph.FindConnectedComponents())
-        {
-            foreach (var node in component)
-                Console.WriteLine(node);
-            Console.WriteLine();
-        }
+        foreach (var node in graph.FindShortestPath(graph[0], graph[4]))
+            Console.WriteLine(node);
     }
 }

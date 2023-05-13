@@ -2,15 +2,18 @@
 {
     public static void Main()
     {
-        var graph = Graph.MakeGraph(
-            0, 1,
-            1, 4,
-            0, 2,
-            2, 3,
-            3, 4
-        );
+        var start = new Game(new[,] {
+            {4, 1, 3},
+            {7, 2, 6},
+            {5, 0, 8}
+        });
 
-        foreach (var node in graph.FindShortestPath(graph[0], graph[4]))
-            Console.WriteLine(node);
+        var target = new Game(new[,]{
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 0}
+        });
+        
+        Game.Resolve(start, target);
     }
 }

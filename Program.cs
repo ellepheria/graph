@@ -13,5 +13,7 @@
 
         foreach (var e in graph[0].BreadthSearch())
             Console.WriteLine(e);
+        foreach (var e in graph[0].DepthSearch())
+            Console.WriteLine(e);
     }
 }
